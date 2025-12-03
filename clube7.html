@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clube de Vantagens 🎁</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e9eef5, #d4e0f5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 34px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: #444;
+            font-size: 20px;
+            margin-bottom: 35px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0px 4px 18px rgba(0,0,0,0.12);
+        }
+
+        th {
+            background: #4A90E2;
+            color: white;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 15px;
+        }
+
+        tr:hover {
+            background: #f0f6ff;
+            transition: 0.2s ease-in-out;
+        }
+
+        /* Botão de WhatsApp mais bonito */
+        .whatsapp-link {
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+            background: #25d366;
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .whatsapp-link:hover {
+            transform: scale(1.05);
+            background: #1ebe5d;
+        }
+
+        .whatsapp-icon {
+            width: 22px;
+        }
+
+        .col-telefone {
+            width: 240px;
+            min-width: 240px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎉 Clube de Vantagens 🎉</h1>
+    <h2 class="subtitulo">Parabéns! Você ganhou benefícios exclusivos das empresas parceiras! 🏆</h2>
+
+    <table id="formData">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const SHEET_ID = "1rVIW3kc05305A8kz1M6ad_CkW1ixiNn6KegvSJmP5ZU";
+        const API_KEY = "AIzaSyD805JTm1UEjlu79IX1MFnmWdYFO4tQch0";
+        const RANGE = "B:Z";
+
+        const EMAIL_COLUMN_INDEX = 0; 
+        const PHONE_COLUMN_INDEX = 3; 
+
+        function isPhoneNumber(text) {
+            return /(\d{10,11})/.test(text.replace(/\D/g, ""));
+        }
+
+        function formatPhoneToWhatsApp(text) {
+            const num = text.replace(/\D/g, "");
+            if (num.length < 10) return text;
+
+            // Mensagem com emojis 💬✨
+            const mensagem = encodeURIComponent(
+                "Olá! 👋 Gostaria de mais informações sobre o benefício do Clube de Vantagens que ganhei! 🎁😊"
+            );
+
+            return `
+                <a class="whatsapp-link" target="_blank" 
+                   href="https://wa.me/55${num}?text=${mensagem}">
+                    <img class="whatsapp-icon" 
+                        src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+                    Falar no WhatsApp
+                </a>`;
+        }
+
+        function fetchSheetData() {
+            const url = 
+            `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    const rows = data.values;
+                    if (!rows) return;
+
+                    const thead = document.querySelector("#formData thead");
+                    const tbody = document.querySelector("#formData tbody");
+
+                    thead.innerHTML = "";
+                    tbody.innerHTML = "";
+
+                    const headerRow = rows[0];
+                    const trHead = document.createElement("tr");
+
+                    headerRow.forEach((label, colIndex) => {
+                        if (colIndex === EMAIL_COLUMN_INDEX) return;
+
+                        const th = document.createElement("th");
+
+                        if (colIndex === PHONE_COLUMN_INDEX)
+                            th.classList.add("col-telefone");
+
+                        th.textContent = label;
+                        trHead.appendChild(th);
+                    });
+
+                    thead.appendChild(trHead);
+
+                    rows.slice(1).forEach((row) => {
+                        const tr = document.createElement("tr");
+
+                        row.forEach((cell, colIndex) => {
+                            if (colIndex === EMAIL_COLUMN_INDEX) return;
+
+                            const td = document.createElement("td");
+
+                            if (colIndex === PHONE_COLUMN_INDEX && isPhoneNumber(cell)) {
+                                td.classList.add("col-telefone");
+                                td.innerHTML = formatPhoneToWhatsApp(cell);
+                            } else {
+                                td.textContent = cell;
+                            }
+
+                            tr.appendChild(td);
+                        });
+
+                        tbody.appendChild(tr);
+                    });
+
+                })
+                .catch(err => console.error("Erro ao carregar dados:", err));
+        }
+
+        window.onload = fetchSheetData;
+    </script>
+
+</body>
+</html>
